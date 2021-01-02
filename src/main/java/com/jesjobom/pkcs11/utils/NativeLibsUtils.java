@@ -22,6 +22,12 @@ public class NativeLibsUtils {
     private static final String[] WIN_LIBS = {"aetpkss1.dll", "asepkcs.dll", "gclib.dll", "pk2priv.dll", "w32pk2ig.dll", "ngp11v211.dll", "eTPkcs11.dll", "eTPKCS11.dll", "acospkcs11.dll", "dkck201.dll", "dkck232.dll", "cryptoki22.dll", "acpkcs.dll", "slbck.dll", "WDPKCS.dll", "cmP11.dll", "WDBraz_P11_CCID_v34.dll", "cvP11.dll"};
     private static final String[] UNIX_LIBS = {"libASEP11.so", "opensc-pkcs11.so", "libaetpkss.so", "libaetpkss.so.3", "libgpkcs11.so", "libgpkcs11.so.2", "libepsng_p11.so", "libepsng_p11.so.1", "libeTPkcs11.so", "libeToken.so", "libeToken.so.4", "libcmP11.so", "libwdpkcs.so", "/usr/local/lib64/libwdpkcs.so", "/usr/local/lib/libwdpkcs.so", "pkcs11/opensc-pkcs11.so", "/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so", "ifdokccid.so", "libokbase2.so", "libokbase2.so.3"};
 
+    /**
+     * Search for available native libraries and returns list with available
+     * ones
+     *
+     * @return
+     */
     public static List<String> getAvailableLibs() {
         LOGGER.debug("Detected OS: " + OsUtils.getOsName());
 
