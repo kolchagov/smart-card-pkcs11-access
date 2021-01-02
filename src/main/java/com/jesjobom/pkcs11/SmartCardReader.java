@@ -1,7 +1,6 @@
 package com.jesjobom.pkcs11;
 
 import java.security.InvalidParameterException;
-import java.util.Arrays;
 import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -10,7 +9,7 @@ import org.apache.logging.log4j.Logger;
  * Abstraction for smart card readers.
  * Only needs read operations to get the label from the certificate.
  *
- * @author jesjobom
+ * @author jesjobom, modified by I.Kolchagov
  */
 public abstract class SmartCardReader {
 	
@@ -18,14 +17,14 @@ public abstract class SmartCardReader {
 	
 	protected final List<String> libs;
 	
-	public SmartCardReader(String... libs) {
-		if(libs == null || libs.length == 0) {
+	public SmartCardReader(List<String> libs) {
+		if(libs == null || libs.isEmpty()) {
 			throw new InvalidParameterException("Need native libraries to access the smart card. Use 'com.jesjobom.pkcs11.NativeLibsUtils#getAvailableLibs()' to get them.");
 		}
-		this.libs = Arrays.asList(libs);
+		this.libs = libs;
 	}
 	
-	public abstract void initialize(String... args);
+	public abstract void setPIN(String... args);
 	
 	public abstract String getLabel();
 }

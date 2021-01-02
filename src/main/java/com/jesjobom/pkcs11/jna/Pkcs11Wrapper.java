@@ -8,7 +8,7 @@ import com.sun.jna.ptr.NativeLongByReference;
  * Java Wrapper for the native PKCS11 library.
  *
  * @author jesjobom
- * @see http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
+ * http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
  */
 public class Pkcs11Wrapper {
 

@@ -7,23 +7,25 @@ import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.NativeLongByReference;
 import java.nio.ByteBuffer;
+import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
  *
  * @author jesjobom
+ * @author I.Kolchagov
  */
 public class NativeReader extends SmartCardReader {
 
 	private static final Logger LOGGER = LogManager.getLogger(NativeReader.class);
 	
-	public NativeReader(String... libs) {
+	public NativeReader(List<String> libs) {
 		super(libs);
 	}
 
 	@Override
-	public void initialize(String... args) {
+	public void setPIN(String... args) {
 		//do nothing
 	}
 
@@ -112,7 +114,7 @@ public class NativeReader extends SmartCardReader {
 	 * Init PKCS11 without parameters.
 	 * 
 	 * @throws CertificadoException 
-	 * @see http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html#_Toc323024102
+	 * src: http://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html#_Toc323024102
 	 */
 	private static void initPkcs11() {
 		LOGGER.debug("Initializing PKCS11");

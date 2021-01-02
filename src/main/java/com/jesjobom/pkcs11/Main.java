@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- *
+ * Demo
  * @author jesjobom
  */
 public class Main {
@@ -40,14 +40,14 @@ public class Main {
 		LOGGER.info(" === USING SUN'S IMPLEMENTATION ===");
 		
 		try {
-			//Access via Sun's version of PKCS11, for some reason, 
+			//Access via Sun's version of PKCS11, for some reason,
 			//hangs the application for some time... dont know why yet
-			SmartCardReader reader = new SunReader(libs.toArray(new String[0]));
-			reader.initialize(args);
+			SmartCardReader reader = new SunReader(libs);
+			reader.setPIN(args);
 			String label = reader.getLabel();
-		
+
 			LOGGER.info(label);
-			
+                        
 		} catch (Exception ex) {
 			LOGGER.error("Failed to access the smart card.", ex);
 		}
@@ -55,12 +55,12 @@ public class Main {
 		LOGGER.info("");
 		LOGGER.info(" === USING JNA ===");
 		
-		SmartCardReader reader = new NativeReader(libs.toArray(new String[0]));
-		reader.initialize(args);
+		SmartCardReader reader = new NativeReader(libs);
+		reader.setPIN(args);
 		String label = reader.getLabel();
-		
+
 		LOGGER.info(label);
-		
+
 		LOGGER.info(" === END OF SMART CARD ACCESS ===");
 	}
 }
