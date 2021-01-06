@@ -5,8 +5,8 @@ import com.jesjobom.pkcs11.sun.SunReader;
 import com.jesjobom.pkcs11.utils.NativeLibsUtils;
 import java.security.InvalidParameterException;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Demo
@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class Main {
 	
-	private static final Logger LOGGER = LogManager.getLogger(Main.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 	
 	/**
 	 * Test the access to the certificate of the PKCS11 Smart Card.
@@ -36,7 +36,7 @@ public class Main {
 		}
 		
 		LOGGER.info(" === BEGIN SMART CARD ACCESS ===");
-		
+
 		LOGGER.info(" === USING SUN'S IMPLEMENTATION ===");
 		
 		try {
@@ -47,7 +47,7 @@ public class Main {
 			String label = reader.getLabel();
 
 			LOGGER.info(label);
-                        
+
 		} catch (Exception ex) {
 			LOGGER.error("Failed to access the smart card.", ex);
 		}

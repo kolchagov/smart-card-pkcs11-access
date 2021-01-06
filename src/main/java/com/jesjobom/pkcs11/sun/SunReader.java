@@ -2,16 +2,20 @@ package com.jesjobom.pkcs11.sun;
 
 import com.jesjobom.pkcs11.SmartCardReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Security;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sun.security.pkcs11.SunPKCS11;
 
 /**
@@ -24,7 +28,7 @@ import sun.security.pkcs11.SunPKCS11;
  */
 public class SunReader extends SmartCardReader {
 
-    private static final Logger LOGGER = LogManager.getLogger(SunReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SunReader.class);
 
     private static String pin;
     private static SunPKCS11 provider;
@@ -47,7 +51,7 @@ public class SunReader extends SmartCardReader {
     @Override
     public String getLabel() {
 
-        X509Certificate certificate = getLastCertificate();
+        X509Certificate certificate = getCertificate();
 
         try {
             return getKeystore().getCertificateAlias(certificate);
@@ -72,11 +76,11 @@ public class SunReader extends SmartCardReader {
      * @return
      * @throws RuntimeException
      */
-    public X509Certificate getLastCertificate() throws RuntimeException {
+    public X509Certificate getCertificate() throws RuntimeException {
         KeyStore ks = getKeystore();
         X509Certificate certificate;
         try {
-            certificate = getLastCertificateFromKeystore(ks);
+            certificate = getCertificateFromKeystore(ks);
         } catch (KeyStoreException ex) {
             LOGGER.error("Error while trying to load the keystore", ex);
             throw new RuntimeException(ex);
@@ -91,17 +95,17 @@ public class SunReader extends SmartCardReader {
      * @throws RuntimeException
      */
     public synchronized KeyStore getKeystore() throws RuntimeException {
-        if (keystore == null) {
-            libs.forEach((lib) -> {
-                try {
+        libs.forEach((lib) -> {
+            try {
+                if (keystore == null) {
                     keystore = loadKeystore(lib);
-                } catch (Exception ex) {
-                    LOGGER.debug("Failed to load keystore with library " + lib + ". Will try with the next one if available.", ex);
                 }
-            });
-            if (keystore == null) {
-                throw new RuntimeException("None of the libraries found were able to load the keystore from the Smart Card.");
+            } catch (Exception ex) {
+                LOGGER.debug("Failed to load keystore with library " + lib + ". Will try with the next one if available.", ex);
             }
+        });
+        if (keystore == null) {
+            throw new RuntimeException("None of the libraries found were able to load the keystore from the Smart Card.");
         }
         return keystore;
     }
@@ -119,9 +123,18 @@ public class SunReader extends SmartCardReader {
             provider = new SunPKCS11(new ByteArrayInputStream(generatePkcs11Config(lib).getBytes()));
             Security.addProvider(provider);
         }
-        KeyStore keyStore = KeyStore.getInstance("PKCS11");
-        keyStore.load(null, pin == null ? null : pin.toCharArray());
-//        logout();
+
+        //the follwing code will allow re-initialization of the card if it's been removed
+        KeyStore.PasswordProtection pinProtection = new KeyStore.PasswordProtection(pin.toCharArray());
+        KeyStore.Builder builder = KeyStore.Builder.newInstance("PKCS11", provider, pinProtection);
+        KeyStore keyStore = null;
+        try {
+            keyStore = builder.getKeyStore();
+        } catch (Exception ex) {
+            //if we've got exception here, our card has been removed
+            provider.logout();
+            throw ex;
+        }
         return keyStore;
     }
 
@@ -150,7 +163,8 @@ public class SunReader extends SmartCardReader {
 
         builder.append("name=SmartCard\n");
         builder.append("showInfo=");
-        builder.append(LOGGER.getLevel().isLessSpecificThan(Level.DEBUG) ? "true\n" : "false\n");
+        builder.append(LOGGER.isDebugEnabled() ? "true\n" : "false\n");
+//        builder.append("removable=true\n");
         builder.append("library=");
         builder.append(lib).append('\n');
         return builder.toString();
@@ -164,7 +178,7 @@ public class SunReader extends SmartCardReader {
      * @param keyStore
      * @return {@link X509Certificate}
      */
-    private X509Certificate getLastCertificateFromKeystore(KeyStore keyStore) throws KeyStoreException {
+    private X509Certificate getCertificateFromKeystore(KeyStore keyStore) throws KeyStoreException {
 
         List<String> aliases = Collections.list(keyStore.aliases());
         X509Certificate certificate = null;
@@ -179,6 +193,13 @@ public class SunReader extends SmartCardReader {
             if (certificate == null || chainSize < size) {
                 chainSize = size;
                 certificate = (X509Certificate) keyStore.getCertificate(aliase);
+                Date now = new Date();
+                if (certificate != null
+                        && now.before(certificate.getNotAfter())
+                        && now.after(certificate.getNotBefore())) {
+                    //we've found valid certificate, break the loop
+                    return certificate;
+                }
             }
         }
 
@@ -188,5 +209,18 @@ public class SunReader extends SmartCardReader {
 
         //certificate.checkValidity();
         return certificate;
+    }
+
+    private static class CallbackProtectionHandler implements CallbackHandler {
+
+        public CallbackProtectionHandler() {
+        }
+
+        @Override
+        public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+            for (Callback callback : callbacks) {
+                System.out.println(callback);
+            }
+        }
     }
 }

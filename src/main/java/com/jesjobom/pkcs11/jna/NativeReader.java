@@ -8,17 +8,16 @@ import com.sun.jna.Pointer;
 import com.sun.jna.ptr.NativeLongByReference;
 import java.nio.ByteBuffer;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
  * @author jesjobom
- * @author I.Kolchagov
+ * @author I.Kolchagov (update)
  */
 public class NativeReader extends SmartCardReader {
 
-	private static final Logger LOGGER = LogManager.getLogger(NativeReader.class);
+	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(NativeReader.class);
 	
 	public NativeReader(List<String> libs) {
 		super(libs);
@@ -71,17 +70,26 @@ public class NativeReader extends SmartCardReader {
 					String label = null;
 
 					LOGGER.debug("Getting LABEL");
+                                        StringBuilder sb = new StringBuilder();
 					for (long objectId : objectIds) {
 						try {
 							label = getObjectLabel(sessionId, objectId);
+                                                        LOGGER.info(label);
+                                                        if(label!=null) {
+                                                            //sometimes CA puts the whole chain into keystore
+                                                            if(sb.length()>0) {
+                                                                sb.append(',');
+                                                            }
+                                                            sb.append(label);
+                                                        }
 						} catch (RuntimeException ex) {
 							//if an error occur, continue
 							//to the next certificate.
 						}
 					}
 
-					if (label != null) {
-						return label.replaceAll("^[^\\p{L}\\p{Digit}]*([\\p{L}\\p{Digit}\\\\\\/\\-\\(\\)\\:\\~ ]+\\)?).*$", "$1");
+					if (sb.length()>0) {
+						return sb.toString().replaceAll("^[^\\p{L}\\p{Digit}]*([\\p{L}\\p{Digit}\\\\\\/\\-\\(\\)\\:\\~ ]+\\)?).*$", "$1");
 					}
 
 				} finally {

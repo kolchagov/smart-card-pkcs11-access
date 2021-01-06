@@ -2,8 +2,8 @@ package com.jesjobom.pkcs11;
 
 import java.security.InvalidParameterException;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstraction for smart card readers. Only needs read operations to get the
@@ -13,7 +13,7 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class SmartCardReader {
 
-    private static final Logger LOGGER = LogManager.getLogger(SmartCardReader.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SmartCardReader.class);
 
     protected final List<String> libs;
 
@@ -38,7 +38,7 @@ public abstract class SmartCardReader {
     public abstract void setPIN(String... args);
 
     /**
-     * Returns the last alias in keystore, as read by PKCS11 library.
+     * Returns the alias in keystore, as read by PKCS11 library.
      *
      * @return X509 certificate alias
      */

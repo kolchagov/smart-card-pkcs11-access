@@ -1,3 +1,18 @@
+# Notes about this fork:
+## Updates, included in this fork:
+- Migrated logging from Log4j to sl4j. Log4j gives me problems with Proguard. 
+- Fixed javadoc errors, some bug fixes, refactored and cleaned code
+- Added release and distribution packages with javadoc
+- Added MacOS support in version 1.1, tested on Mojave
+- Fixed implementation for NativeReader's getLabel() method for certificates with embedded full chain. This implementation works without PIN and can be used to check if smartcard is recognized, before using SunReader as the latter can block it with wrong PIN.
+- Added two convenience methods to SunReader implementation: getCertificate() and getKeystore()
+- Added support for two popular smartcard makers to the libary: Gemalto and CryptoVision
+- Tested with Windows XP, Windows 7 (x86), Windows 10 (x64) and MacOS with Java 8 (x86,x64)
+
+## Caracteristics
+This library gives you tools to use smartcard natively in Java. You can store the pin in program and use it with confidence that card is safe and can't be blocked by wrong PIN. This is the best possible solution for transparent use of crypto services with QES (and the easiest too).
+
+# Original readme:
 # Two Simple Examples of PKCS11 Smart Card Access
 
 Recently I had to read the certificates from a PKCS11 enabled smart card. After some research and some problems, I ended with two solutions:

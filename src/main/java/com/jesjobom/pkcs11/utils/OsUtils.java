@@ -20,7 +20,11 @@ public class OsUtils {
 		return getOsName().startsWith("Windows");
 	}
 
+        public static boolean isMacOS() {
+            return getOsName().contains("MacOS");
+        }
+
 	public static boolean isUnix() {
-		return !isWindows();
+		return !isWindows() && !isMacOS();
 	}
 }
