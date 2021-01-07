@@ -2,17 +2,14 @@ package com.jesjobom.pkcs11.sun;
 
 import com.jesjobom.pkcs11.SmartCardReader;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.CallbackHandler;
-import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.auth.login.LoginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,56 +168,57 @@ public class SunReader extends SmartCardReader {
     }
 
     /**
-     * Loads the last certificate from the smart card. By last I mean the
-     * certificate with longest chain. I supose that this will be the user's
-     * certificate.
+     * Loads the last certificate from the smart card. This method checks the
+     * certificate validity and key usage. It returns only valid certificate
+     * with private key suitable for signing
      *
      * @param keyStore
      * @return {@link X509Certificate}
      */
     private X509Certificate getCertificateFromKeystore(KeyStore keyStore) throws KeyStoreException {
-
         List<String> aliases = Collections.list(keyStore.aliases());
         X509Certificate certificate = null;
-        int chainSize = 0;
 
-        for (String aliase : aliases) {
-//			if (!keyStore.isCertificateEntry(aliase)) {
-//				continue;
-//			}
-
-            int size = keyStore.getCertificateChain(aliase).length;
-            if (certificate == null || chainSize < size) {
-                chainSize = size;
-                certificate = (X509Certificate) keyStore.getCertificate(aliase);
-                Date now = new Date();
-                if (certificate != null
-                        && now.before(certificate.getNotAfter())
-                        && now.after(certificate.getNotBefore())) {
-                    //we've found valid certificate, break the loop
-                    return certificate;
+        for (String tmpAlias : aliases) {
+            if (keyStore.isKeyEntry(tmpAlias)) {
+                final Certificate tmpCert = keyStore.getCertificate(tmpAlias);
+                boolean tmpAddAlias = true;
+                if (tmpCert instanceof X509Certificate) {
+                    final X509Certificate tmpX509 = (X509Certificate) tmpCert;
+                    Date now = new Date();
+                    final boolean isValid = now.before(tmpX509.getNotAfter())
+                            && now.after(tmpX509.getNotBefore());
+                    tmpAddAlias = isValid;
+                    // check if the certificate is supposed to be
+                    // used for digital signatures
+                    final boolean keyUsage[] = tmpX509.getKeyUsage();
+                    if (keyUsage != null && keyUsage.length > 0) {
+                        // KeyUsage = BIT STRING {
+                        // digitalSignature (0),
+                        // nonRepudiation (1),
+                        // keyEncipherment (2),
+                        // dataEncipherment (3),
+                        // keyAgreement (4),
+                        // keyCertSign (5),
+                        // cRLSign (6),
+                        // encipherOnly (7),
+                        // decipherOnly (8) }
+                        if (!(keyUsage[0] || keyUsage[1])) {
+                            LOGGER.info("Certificate not for signature" + tmpAlias);
+                            tmpAddAlias = false;
+                        }
+                    }
+                }
+                if (tmpAddAlias) {
+                    certificate = (X509Certificate) tmpCert;
                 }
             }
         }
 
         if (certificate == null) {
-            throw new NullPointerException("Not possible to access the certificate from the smart card. Is it a PKCS11 initialized card?");
+            throw new IllegalStateException("Not possible to access the certificate "
+                    + "from the smart card. Is it a PKCS11 initialized card?");
         }
-
-        //certificate.checkValidity();
         return certificate;
-    }
-
-    private static class CallbackProtectionHandler implements CallbackHandler {
-
-        public CallbackProtectionHandler() {
-        }
-
-        @Override
-        public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-            for (Callback callback : callbacks) {
-                System.out.println(callback);
-            }
-        }
     }
 }

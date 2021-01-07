@@ -1,11 +1,12 @@
 # Notes about this fork:
-## Updates, included in this fork:
+## Updates included:
 - Migrated logging from Log4j to sl4j. Log4j gives me problems with Proguard. 
 - Fixed javadoc errors, some bug fixes, refactored and cleaned code
 - Added release and distribution packages with javadoc
 - Added MacOS support in version 1.1, tested on Mojave
 - Fixed implementation for NativeReader's getLabel() method for certificates with embedded full chain. This implementation works without PIN and can be used to check if smartcard is recognized, before using SunReader as the latter can block it with wrong PIN.
 - Added two convenience methods to SunReader implementation: getCertificate() and getKeystore()
+- Refined filtering in getCertificate() - it returns only non-expired certificate with private key suitable for signing
 - Added support for two popular smartcard makers to the libary: Gemalto and CryptoVision
 - Tested with Windows XP, Windows 7 (x86), Windows 10 (x64) and MacOS with Java 8 (x86,x64)
 

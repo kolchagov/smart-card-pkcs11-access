@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jesjobom</groupId>
     <artifactId>smart-card-pkcs11-access</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -101,4 +101,8 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+    <description>This library gives you tools to use smartcard natively in Java.
+You can store the pin in program and use it with confidence that card is safe
+and can't be blocked by wrong PIN. This is the best possible solution for
+transparent use of crypto services with QES (and the easiest too).</description>
 </project>
